@@ -400,7 +400,14 @@ vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set('v', '<C-c>', '"+y', { noremap = true, silent = true })
 vim.keymap.set('n', '<C-v>', '"+p', { noremap = true, silent = true })
 vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })
-vim.keymap.set({'n', 'v', 'i'}, '<C-a>', '<Esc>ggVG', { noremap = true, silent = true })  -- Ctrl+A for select all 
+vim.keymap.set({'n', 'v', 'i'}, '<C-a>', '<Esc>ggVG', { noremap = true, silent = true })  -- Ctrl+A for select all
+
+-- Terminal path autocompletion
+vim.opt.wildmenu = true
+vim.opt.wildmode = "longest,list,full"
+vim.opt.wildoptions = "pum"
+vim.api.nvim_set_keymap('t', '<Tab>', [[wildmenumode() ? "\<C-N>" : "\<Tab>"]], {expr = true, noremap = true})
+vim.api.nvim_set_keymap('t', '<S-Tab>', [[wildmenumode() ? "\<C-P>" : "\<S-Tab>"]], {expr = true, noremap = true})
 
 -- Auto Commands
 vim.api.nvim_create_autocmd("TextYankPost", {

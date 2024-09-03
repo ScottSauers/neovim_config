@@ -402,6 +402,14 @@ vim.keymap.set('n', '<C-v>', '"+p', { noremap = true, silent = true })
 vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })
 vim.keymap.set({'n', 'v', 'i'}, '<C-a>', '<Esc>ggVG', { noremap = true, silent = true })  -- Ctrl+A for select all
 
+-- Copy all
+vim.keymap.set('n', 'Y', function()
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local text = table.concat(lines, "\n")
+    vim.fn.setreg('+', text)
+    print("All text copied to clipboard")
+end, { noremap = true, silent = false, desc = "Copy all text to clipboard" })
+
 -- Terminal path autocompletion
 vim.opt.wildmenu = true
 vim.opt.wildmode = "longest,list,full"

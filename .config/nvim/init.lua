@@ -185,6 +185,32 @@ require("lazy").setup({
   { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
 })
 
+-- Provider setup
+local function set_python3_host_prog()
+  local possible_python_paths = {
+    vim.fn.expand('~/.config/nvim/env/bin/python'),
+    '/usr/bin/python3',
+    '/usr/local/bin/python3',
+    '/opt/homebrew/bin/python3'
+  }
+  
+  for _, path in ipairs(possible_python_paths) do
+    if vim.fn.executable(path) == 1 then
+      vim.g.python3_host_prog = path
+      return
+    end
+  end
+  
+  print("Warning: No suitable Python 3 executable found for Neovim provider")
+end
+
+set_python3_host_prog()
+
+vim.g.loaded_ruby_provider = 0
+
+-- Clipboard setup
+vim.opt.clipboard:append("unnamedplus")
+
 -- LSP Setup
 require("mason").setup()
 require("mason-lspconfig").setup({
@@ -218,7 +244,16 @@ lspconfig.eslint.setup({
   capabilities = capabilities,
   filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
   settings = {
-    workingDirectory = { mode = "auto" }
+    workingDirectory = { mode = "auto" },
+    codeAction = {
+      disableRuleComment = {
+        enable = true,
+        location = "separateLine"
+      },
+      showDocumentation = {
+        enable = true
+      }
+    }
   }
 })
 
@@ -291,6 +326,11 @@ require("lint").linters_by_ft = {
   typescriptreact = { "eslint" },
 }
 
+require("lint").linters.pylint.args = {
+  "--max-line-length=120",
+  "--disable=C0103,C0111,C0301,C0325,C0326,C0330,C0411,C0412,W0611,E1101",
+}
+
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
   callback = function()
     require("lint").try_lint()
@@ -332,15 +372,35 @@ require('lualine').setup {
 -- Git Signs Setup
 require('gitsigns').setup()
 
+
+-- Check if running on macOS
+local is_mac = vim.fn.has("macunix") == 1
+
+if is_mac then
+  -- Use macOS clipboard for unnamed register
+  vim.g.clipboard = {
+    name = "macOS-clipboard",
+    copy = {
+      ["+"] = "pbcopy",
+      ["*"] = "pbcopy",
+    },
+    paste = {
+      ["+"] = "pbpaste",
+      ["*"] = "pbpaste",
+    },
+    cache_enabled = 0,
+  }
+end
+
 -- Custom Keymaps
 vim.g.mapleader = " "  -- Set leader key to space
 vim.keymap.set("n", "<C-a>", "ggVG", { desc = "Select all" })
-vim.keymap.set("n", "<leader>d", '"_d', { desc = "Delete without copying" })
-vim.keymap.set("v", "<leader>d", '"_d', { desc = "Delete without copying" })
-vim.keymap.set("n", "d", '""d', { desc = "Delete and copy" })
-vim.keymap.set("v", "d", '""d', { desc = "Delete and copy" })
 vim.keymap.set("n", "<leader>t", ":terminal<CR>", { desc = "Open terminal" })
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+vim.keymap.set('v', '<C-c>', '"+y', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-v>', '"+p', { noremap = true, silent = true })
+vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })
+vim.keymap.set({'n', 'v', 'i'}, '<C-a>', '<Esc>ggVG', { noremap = true, silent = true })  -- Ctrl+A for select all 
 
 -- Auto Commands
 vim.api.nvim_create_autocmd("TextYankPost", {

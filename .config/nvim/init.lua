@@ -414,7 +414,7 @@ vim.keymap.set('n', 'Y', function()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local text = table.concat(lines, "\n")
     vim.fn.setreg('+', text)
-    vim.notify("All text copied to clipboard", vim.log.levels.INFO, { timeout = 1000 })
+    vim.notify("All text copied to clipboard", vim.log.levels.INFO, { timeout = 100 })
 end, { noremap = true, silent = false, desc = "Copy all text to clipboard" })
 
 -- Open terminal
@@ -430,6 +430,29 @@ vim.keymap.set('n', 'T', function()
     end
     vim.cmd('bot term')
 end, { noremap = true, silent = true, desc = "Toggle bottom terminal" })
+
+-- Function to open terminal and run last command
+vim.keymap.set('n', 'F', function()
+    -- Find and close existing terminal if any
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.bo[buf].buftype == 'terminal' then
+            vim.api.nvim_buf_delete(buf, { force = true })
+            break
+        end
+    end
+    
+    -- Open a new terminal at the bottom
+    vim.cmd('botright split term://bash')  -- or 'zsh', or whatever shell you use
+
+    -- Give the terminal some time to initialize, then send keys
+    vim.defer_fn(function()
+        -- Enter terminal mode
+        vim.cmd('normal a')
+
+        -- Send 'Up' to get the last command, then 'Enter' to run it
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Up><CR>', true, false, true), 'n', false)
+    end, 50) -- Adjust the delay if necessary
+end, { noremap = true, silent = true, desc = "Open terminal and run last command" })
 
 -- Terminal path autocompletion
 vim.opt.wildmenu = true

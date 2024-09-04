@@ -319,7 +319,7 @@ vim.keymap.set("n", "<leader>f", function() require("conform").format() end, { d
 
 -- Linting Setup
 require("lint").linters_by_ft = {
-  python = { "pylint" },
+  python = { "pylint", "flake8" },
   javascript = { "eslint" },
   typescript = { "eslint" },
   javascriptreact = { "eslint" },
@@ -328,8 +328,15 @@ require("lint").linters_by_ft = {
 
 require("lint").linters.pylint.args = {
   "--max-line-length=120",
-  "--disable=C0103,C0111,C0301,C0325,C0326,C0330,C0411,C0412,W0611,E1101",
+  "--disable=C0103,C0111,C0301,C0325,C0411,C0412,W0611,E1101",
 }
+
+require("lint").linters.flake8.args = {
+  "--max-line-length=120",
+  "--ignore=E203,E266,E501,W503",
+  "--max-complexity=18",
+}
+
 
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
   callback = function()
@@ -407,8 +414,22 @@ vim.keymap.set('n', 'Y', function()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local text = table.concat(lines, "\n")
     vim.fn.setreg('+', text)
-    print("All text copied to clipboard")
+    vim.notify("All text copied to clipboard", vim.log.levels.INFO, { timeout = 1000 })
 end, { noremap = true, silent = false, desc = "Copy all text to clipboard" })
+
+-- Open terminal
+vim.keymap.set('n', 'T', function()
+    local term_bufs = vim.tbl_filter(function(buf)
+        return vim.bo[buf].buftype == 'terminal'
+    end, vim.api.nvim_list_bufs())
+    
+    if #term_bufs > 0 then
+        for _, buf in ipairs(term_bufs) do
+            vim.api.nvim_buf_delete(buf, { force = true })
+        end
+    end
+    vim.cmd('bot term')
+end, { noremap = true, silent = true, desc = "Toggle bottom terminal" })
 
 -- Terminal path autocompletion
 vim.opt.wildmenu = true

@@ -318,7 +318,9 @@ require("conform").setup({
 vim.keymap.set("n", "<leader>f", function() require("conform").format() end, { desc = "Format file" })
 
 -- Linting Setup
-require("lint").linters_by_ft = {
+local lint = require("lint")
+
+lint.linters_by_ft = {
   python = { "pylint", "flake8" },
   javascript = { "eslint" },
   typescript = { "eslint" },
@@ -326,21 +328,29 @@ require("lint").linters_by_ft = {
   typescriptreact = { "eslint" },
 }
 
-require("lint").linters.pylint.args = {
+lint.linters.pylint.cmd = "pylint"
+lint.linters.pylint.stdin = true
+lint.linters.pylint.args = {
+  "-f", "json",
+  "--from-stdin",
   "--max-line-length=120",
   "--disable=C0103,C0111,C0301,C0325,C0411,C0412,W0611,E1101",
+  function()
+    return vim.fn.expand("%:p")
+  end
 }
+lint.linters.pylint.stream = "stdout"
+lint.linters.pylint.ignore_exitcode = true
 
-require("lint").linters.flake8.args = {
+lint.linters.flake8.args = {
   "--max-line-length=120",
   "--ignore=E203,E266,E501,W503",
   "--max-complexity=18",
 }
 
-
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
   callback = function()
-    require("lint").try_lint()
+    lint.try_lint()
   end,
 })
 

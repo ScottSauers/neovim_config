@@ -18,8 +18,6 @@ vim.opt.shortmess:append("I")        -- Turn off the intro message
 vim.g.rustfmt_autosave = 1
 vim.opt.guifont = "DejaVuSansMono Nerd Font:h12"
 vim.g.have_nerd_font = true
---vim.opt.encoding = "utf-8"
---vim.opt.fileencoding = "UTF-8"
 
 -- Plugin Manager (Lazy.nvim)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -37,6 +35,14 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Plugins
 require("lazy").setup({
+
+  -- Language-specific plugins
+  { "rhysd/vim-clang-format", ft = { "c", "cpp" } },
+  { "alaviss/nim.nvim" },
+  { "wlangstroth/vim-racket" },
+  { "adimit/prolog.vim" },
+  { "krischik/vim-ada" },
+
   -- Color scheme
   {
     "catppuccin/nvim",
@@ -67,13 +73,14 @@ require("lazy").setup({
     build = ":TSUpdate",
     config = function()
       require("nvim-treesitter.configs").setup({
-        ensure_installed = {
-          "lua", "vim", "vimdoc", "query",
-          "rust", "python",
-          "javascript", "typescript", "tsx",
-          "html", "css", "json",
-          "bash", "markdown", "markdown_inline"
-        },
+      ensure_installed = {
+        "lua", "vim", "vimdoc", "query",
+        "rust", "python",
+        "javascript", "typescript", "tsx",
+        "html", "css", "json",
+        "bash", "markdown", "markdown_inline",
+        "c"
+      },
         sync_install = false,
         auto_install = true,
         highlight = {
@@ -187,20 +194,32 @@ require("lazy").setup({
 
 -- Provider setup
 local function set_python3_host_prog()
-  local possible_python_paths = {
-    vim.fn.expand('~/.config/nvim/env/bin/python'),
-    '/usr/bin/python3',
-    '/usr/local/bin/python3',
-    '/opt/homebrew/bin/python3'
-  }
-  
-  for _, path in ipairs(possible_python_paths) do
+  local function is_valid_python(path)
     if vim.fn.executable(path) == 1 then
+      local version = vim.fn.system(path .. " --version")
+      return version:match("Python 3")
+    end
+    return false
+  end
+
+  local possible_python_paths = {
+    vim.fn.exepath("python3"),
+    vim.fn.exepath("python"),
+    "/usr/bin/python3",
+    "/usr/local/bin/python3",
+    "/opt/homebrew/bin/python3",
+    vim.fn.expand("~/.pyenv/shims/python3"),
+    vim.fn.expand("~/.asdf/shims/python3"),
+    vim.fn.expand("~/.config/nvim/env/bin/python")
+  }
+
+  for _, path in ipairs(possible_python_paths) do
+    if is_valid_python(path) then
       vim.g.python3_host_prog = path
       return
     end
   end
-  
+
   print("Warning: No suitable Python 3 executable found for Neovim provider")
 end
 
@@ -220,7 +239,7 @@ require("mason-lspconfig").setup({
 local lspconfig = require("lspconfig")
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-local servers = { "lua_ls", "rust_analyzer", "pyright", "tsserver", "cssls", "bashls" }
+local servers = { "lua_ls", "rust_analyzer", "pyright", "tsserver", "cssls", "bashls", "clangd" }
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup({
     capabilities = capabilities,
@@ -312,6 +331,8 @@ require("conform").setup({
     javascriptreact = { "prettier", "eslint" },
     typescriptreact = { "prettier", "eslint" },
     css = { "prettier" },
+    c = { "clang-format" },
+    cpp = { "clang-format" },
   },
 })
 
@@ -385,10 +406,8 @@ require('lualine').setup {
   extensions = {}
 }
 
-
 -- Git Signs Setup
 require('gitsigns').setup()
-
 
 -- Check if running on macOS
 local is_mac = vim.fn.has("macunix") == 1
@@ -414,6 +433,7 @@ vim.g.mapleader = " "  -- Set leader key to space
 vim.keymap.set("n", "<C-a>", "ggVG", { desc = "Select all" })
 vim.keymap.set("n", "<leader>t", ":terminal<CR>", { desc = "Open terminal" })
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+vim.keymap.set('n', '<leader>rc', ':!gcc % && ./a.out<CR>', { noremap = true, silent = false })
 vim.keymap.set('v', '<C-c>', '"+y', { noremap = true, silent = true })
 vim.keymap.set('n', '<C-v>', '"+p', { noremap = true, silent = true })
 vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })

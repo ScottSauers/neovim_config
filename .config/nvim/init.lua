@@ -232,7 +232,7 @@ vim.opt.clipboard:append("unnamedplus")
 -- LSP Setup
 require("mason").setup()
 require("mason-lspconfig").setup({
-  ensure_installed = { "lua_ls", "rust_analyzer", "pyright", "tsserver", "cssls", "bashls", "eslint" },
+  ensure_installed = { "lua_ls", "rust_analyzer", "pyright", "cssls", "bashls", "eslint" },
 })
 
 local lspconfig = require("lspconfig")

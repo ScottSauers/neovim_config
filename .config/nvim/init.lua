@@ -41,7 +41,6 @@ require("lazy").setup({
   { "alaviss/nim.nvim" },
   { "wlangstroth/vim-racket" },
   { "adimit/prolog.vim" },
-  { "krischik/vim-ada" },
 
   -- Color scheme
   {

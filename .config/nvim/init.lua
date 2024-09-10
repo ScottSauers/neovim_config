@@ -238,7 +238,7 @@ require("mason-lspconfig").setup({
 local lspconfig = require("lspconfig")
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-local servers = { "lua_ls", "rust_analyzer", "pyright", "tsserver", "cssls", "bashls", "clangd" }
+local servers = { "lua_ls", "rust_analyzer", "pyright", "cssls", "bashls", "clangd" }
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup({
     capabilities = capabilities,
@@ -249,13 +249,7 @@ lspconfig.tsserver.setup({
   capabilities = capabilities,
   filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
   root_dir = lspconfig.util.root_pattern("package.json"),
-  settings = {
-    javascript = {
-      implicitProjectConfig = {
-        checkJs = true  -- Enable type checking for JavaScript files
-      }
-    }
-  }
+  single_file_support = true,
 })
 
 lspconfig.eslint.setup({
